@@ -37,7 +37,7 @@ jobs:
 
       - name: Dry run docker build process
         run: |
-          docker build --progress=plain --no-cache -t test-image base-dockerfile
+          docker build --progress=plain --no-cache -t test-image -f base-dockerfile .
           
       - name: Security Scan with Trivy
         uses: aquasecurity/trivy-action@master
