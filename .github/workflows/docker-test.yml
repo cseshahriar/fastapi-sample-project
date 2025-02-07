@@ -53,26 +53,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create Pull Request using GitHub API
+      - name: Authenticate GitHub CLI
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GIT_PAT }}
         run: |
-          PR_EXISTS=$(gh pr list --base development --head feature/docker-configuration --state open --json number --jq '. | length')
-          if [[ "$PR_EXISTS" -gt 0 ]]; then
+          gh auth login --with-token <<< "$GH_TOKEN"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GIT_PAT }}
+        run: |
+          if gh pr list --base development --head feature/docker-configuration --state open | grep -q "feature/docker-configuration"; then
             echo "PR already exists, skipping creation."
           else
-            gh api repos/${{ github.repository }}/pulls \
-              -X POST \
-              -H "Accept: application/vnd.github.v3+json" \
-              -F base="development" \
-              -F head="feature/docker-configuration" \
-              -F title="Auto PR: Merge feature/docker-configuration into development" \
-              -F body="This pull request was automatically created by GitHub Actions."
+            gh pr create \
+              --base development \
+              --head feature/docker-configuration \
+              --title "Auto PR: Merge feature/docker-configuration into development" \
+              --body "This pull request was automatically created by GitHub Actions."
             echo "PR created successfully."
           fi
-
-      - name: Auto Merge PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr merge --auto --squash
