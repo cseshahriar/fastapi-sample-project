@@ -55,7 +55,7 @@ jobs:
 
       - name: Create Pull Request
         env:
-          GH_TOKEN: ${{ secrets.PAT_GITHUB }}  # Use PAT stored in secrets
+          GH_TOKEN: ${{ secrets.GIT_PAT }}
         run: |
           if gh pr list --base development --head feature/docker-configuration --state open | grep -q "feature/docker-configuration"; then
             echo "PR already exists, skipping creation."
@@ -70,7 +70,7 @@ jobs:
 
       - name: Auto Merge Pull Request
         env:
-          GH_TOKEN: ${{ secrets.PAT_GITHUB }}
+          GH_TOKEN: ${{ secrets.GIT_PAT }}
         run: |
           PR_NUMBER=$(gh pr list --base development --head feature/docker-configuration --state open --json number --jq '.[0].number')
 
