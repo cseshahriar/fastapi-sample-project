@@ -46,22 +46,16 @@ jobs:
           exit-code: 1
           severity: 'CRITICAL,HIGH'
 
-  create-pull-request:
+  create-and-merge-pull-request:
     needs: build-docker
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Authenticate GitHub CLI
-        env:
-          GH_TOKEN: ${{ secrets.GIT_PAT }}
-        run: |
-          gh auth login --with-token <<< "$GH_TOKEN"
-
       - name: Create Pull Request
         env:
-          GH_TOKEN: ${{ secrets.GIT_PAT }}
+          GH_TOKEN: ${{ secrets.PAT_GITHUB }}  # Use PAT stored in secrets
         run: |
           if gh pr list --base development --head feature/docker-configuration --state open | grep -q "feature/docker-configuration"; then
             echo "PR already exists, skipping creation."
@@ -73,3 +67,18 @@ jobs:
               --body "This pull request was automatically created by GitHub Actions."
             echo "PR created successfully."
           fi
+
+      - name: Auto Merge Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.PAT_GITHUB }}
+        run: |
+          PR_NUMBER=$(gh pr list --base development --head feature/docker-configuration --state open --json number --jq '.[0].number')
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No PR found to merge, exiting."
+            exit 0
+          fi
+
+          echo "Merging PR #$PR_NUMBER"
+          gh pr merge "$PR_NUMBER" --merge --delete-branch
+          echo "PR #$PR_NUMBER merged and branch deleted."
