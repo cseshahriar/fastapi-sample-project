@@ -80,5 +80,5 @@ jobs:
           fi
 
           echo "Merging PR #$PR_NUMBER"
-          gh pr merge "$PR_NUMBER" --merge --delete-branch
-          echo "PR #$PR_NUMBER merged and branch deleted."
+          gh pr merge "$PR_NUMBER" --merge
+          echo "PR #$PR_NUMBER merged."
