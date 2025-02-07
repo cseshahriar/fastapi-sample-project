@@ -8,6 +8,10 @@ on:
     branches:
       - development
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   build-docker:
     runs-on: ubuntu-latest
@@ -62,3 +66,9 @@ jobs:
               --title "Auto PR: Merge feature/docker-configuration into development" \
               --body "This pull request was automatically created by GitHub Actions."
           fi
+
+      - name: Auto Merge PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge --auto --squash
