@@ -6,7 +6,11 @@ on:
       - feature/docker-configuration
   pull_request:
     branches:
-      - feature/docker-configuration
+      - development
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   build-docker:
@@ -22,6 +26,14 @@ jobs:
           dockerfile: ./Dockerfile
         continue-on-error: true
 
+      - name: Scan Dockerfile for Vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'table'
+          exit-code: 1
+          severity: 'CRITICAL,HIGH'
+
       - name: Dry run docker build process
         run: |
           docker build --progress=plain --no-cache -t test-image .
@@ -33,3 +45,40 @@ jobs:
           format: 'table'
           exit-code: 1
           severity: 'CRITICAL,HIGH'
+
+  create-and-merge-pull-request:
+    needs: build-docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GIT_PAT }}
+        run: |
+          if gh pr list --base development --head feature/docker-configuration --state open | grep -q "feature/docker-configuration"; then
+            echo "PR already exists, skipping creation."
+          else
+            gh pr create \
+              --base development \
+              --head feature/docker-configuration \
+              --title "Auto PR: Merge feature/docker-configuration into development" \
+              --body "This pull request was automatically created by GitHub Actions."
+            echo "PR created successfully."
+          fi
+
+      - name: Auto Merge Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GIT_PAT }}
+        run: |
+          PR_NUMBER=$(gh pr list --base development --head feature/docker-configuration --state open --json number --jq '.[0].number')
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No PR found to merge, exiting."
+            exit 0
+          fi
+
+          echo "Merging PR #$PR_NUMBER"
+          gh pr merge "$PR_NUMBER" --merge
+          echo "PR #$PR_NUMBER merged."
