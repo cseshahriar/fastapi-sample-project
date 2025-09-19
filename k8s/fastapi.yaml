@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-sample-project-fastapi
+  labels:
+    app: fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+        - name: fastapi-sample-project-fastapi
+          image: nahiyanswe/fastapi-sample-project:k8s
+          command: ["uvicorn"]
+          args: ["main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+          env:
+            - name: PYTHONPATH
+              value: "/app"
+          ports:
+            - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-sample-project-fastapi-service
+spec:
+  selector:
+    app: fastapi
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30080
+  type: NodePort
