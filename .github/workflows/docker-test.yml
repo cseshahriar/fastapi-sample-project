@@ -3,8 +3,8 @@ name: Docker Build Check
 on:
   push:
     branches:
-      - development
-#      - feature/docker-configuration
+#      - development
+      - feature/docker-configuration
 #  pull_request:
 #    branches:
 #      - development

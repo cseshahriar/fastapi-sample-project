@@ -3,8 +3,8 @@ name: Python Code Tests
 on:
   push:
     branches:
-      - development
-#      - feature/python-code
+#      - development
+      - feature/python-code
 #  pull_request:
 #    branches:
 #      - feature/python-code
