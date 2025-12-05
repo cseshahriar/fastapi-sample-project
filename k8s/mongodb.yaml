@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-sample-project-mongodb
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: fastapi-sample-project-mongodb
+          image: mongo:6.0
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: celery_db
+#          volumeMounts:
+#            - name: mongo-data-k8s
+#              mountPath: /data/db
+#      volumes:
+#        - name: mongo-data-k8s
+#          persistentVolumeClaim:
+#            claimName: mongo-pvc
+---
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: mongo-pvc
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-sample-project-mongodb-service
+spec:
+  selector:
+    app: mongodb
+  ports:
+  - port: 27017
+    targetPort: 27017
